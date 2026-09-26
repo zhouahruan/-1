@@ -1,0 +1,6 @@
+{
+  "name": "雾点社区",
+  "description": "雾点社区移动端应用：包含论坛交流、帖子发布与评论点赞、轻应用市场与沙箱、免费个人云盘与文件共享、社区群聊及管理员治理体系。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

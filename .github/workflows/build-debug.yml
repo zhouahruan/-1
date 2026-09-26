@@ -1,0 +1,116 @@
+# 说明：本项目现在只构建正式包（Release APK）。
+# 推送代码 / 打标签只会触发 build-release.yml，本工作流已改为「仅手动触发」，
+# 仅用于排查问题时临时构建 Debug 包。若不再需要，可直接删除本文件。
+name: Build Android Debug APK (手动，默认可不用)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-debug:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Prepare Keystore and Environment Files
+        run: |
+          echo "Preparing environment files..."
+          # Ensure .env exists for Secrets Gradle Plugin
+          if [ ! -f .env ]; then
+            if [ -f .env.example ]; then
+              cp .env.example .env
+              echo "Created .env from .env.example"
+            else
+              touch .env
+              echo "Created empty .env"
+            fi
+          fi
+
+          # Ensure debug.keystore exists (restore from base64 if available, or generate a fresh one)
+          if [ ! -f debug.keystore ]; then
+            if [ -f debug.keystore.base64 ]; then
+              base64 -d debug.keystore.base64 > debug.keystore
+              echo "Restored debug.keystore from debug.keystore.base64"
+            else
+              keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+              echo "Generated new debug.keystore"
+            fi
+          fi
+
+      - name: Build Debug APK
+        run: |
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug --stacktrace
+          else
+            gradle assembleDebug --stacktrace
+          fi
+
+      - name: Sign APK with Complete V1, V2, and V3 Schemes
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: No APK found to sign"
+            exit 1
+          fi
+          echo "Signing $APK_PATH with V1 (JAR) and V2/V3 schemes..."
+          # Sign with jarsigner to generate META-INF/*.RSA (V1 signature required by Huawei/Xiaomi/OPPO/Vivo)
+          jarsigner -keystore debug.keystore -storepass android -keypass android -sigalg SHA256withRSA -digestalg SHA-256 "$APK_PATH" androiddebugkey
+
+          # Locate apksigner from Android SDK
+          APKSIGNER=$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -name apksigner -type f | sort -V | tail -n 1)
+          if [ -n "$APKSIGNER" ] && [ -x "$APKSIGNER" ]; then
+            echo "Signing with apksigner at $APKSIGNER (V2 + V3)..."
+            $APKSIGNER sign --ks debug.keystore --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true "$APK_PATH"
+            echo "=== APK 签名验证结果 ==="
+            $APKSIGNER verify --verbose "$APK_PATH"
+          else
+            echo "apksigner not found, relying on jarsigner"
+          fi
+
+      - name: Verify APK Output
+        id: verify_apk
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: No APK found in app/build/outputs/apk/debug"
+            exit 1
+          fi
+          echo "Found APK at: $APK_PATH"
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+
+          APK_NAME=$(basename "$APK_PATH")
+          APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
+          APK_SHA=$(sha256sum "$APK_PATH" | cut -d ' ' -f 1)
+
+          echo "### 🚀 Debug APK 构建与完整签名成功！" >> $GITHUB_STEP_SUMMARY
+          echo "- **文件名称**: \`$APK_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **文件大小**: \`$APK_SIZE\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **SHA-256**: \`$APK_SHA\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **签名方案**: 已注入 V1 (JAR 证书) + V2 + V3 签名，全面兼容华为/小米/OPPO/vivo等设备" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ⚠️ 手机安装特别注意（重要）：" >> $GITHUB_STEP_SUMMARY
+          echo "1. **切勿直接重命名 zip**：GitHub 的 **Artifacts (工件)** 下载下来是 \`app-debug-apk.zip\` 压缩包！**请先解压**该 zip 文件，安装解压出来的 \`app-debug.apk\` 真实文件，直接把 zip 改成 apk 会导致手机提示“没有证书”或“解析错误”。" >> $GITHUB_STEP_SUMMARY
+          echo "2. **国内手机系统安全提示**：部分手机（如华为鸿蒙纯净模式、小米澎湃OS安全守护）由于是个人开发测试包（CN=Android Debug），会提示“未知应用”或“未备案证书”，点击【继续安装】/【允许本次安装】/【无视风险安装】即可正常使用。" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: ${{ steps.verify_apk.outputs.apk_path }}
+          retention-days: 14

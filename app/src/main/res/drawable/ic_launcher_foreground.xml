@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Community chat bubble 1 (large) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,32 C30.7,32 28,34.7 28,38 L28,62 C28,65.3 30.7,68 34,68 L42,68 L42,75 L50,68 L68,68 C71.3,68 74,65.3 74,62 L74,38 C74,34.7 71.3,32 68,32 Z" />
+    <!-- Community chat bubble 2 (overlapping top-right, bright cyan accent) -->
+    <path
+        android:fillColor="#80DEEA"
+        android:pathData="M56,44 C53.8,44 52,45.8 52,48 L52,65 C52,67.2 53.8,69 56,69 L62,69 L62,74 L68,69 L76,69 C78.2,69 80,67.2 80,65 L80,48 C80,45.8 78.2,44 76,44 Z" />
+    <!-- Three dots in primary speech bubble -->
+    <path
+        android:fillColor="#006874"
+        android:pathData="M38,48 A3,3 0 1 1 38,54 A3,3 0 1 1 38,48 Z
+                          M51,48 A3,3 0 1 1 51,54 A3,3 0 1 1 51,48 Z
+                          M64,48 A3,3 0 1 1 64,54 A3,3 0 1 1 64,48 Z" />
+</vector>
