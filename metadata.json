@@ -1,0 +1,6 @@
+{
+  "name": "ZHShop",
+  "description": "ZHShop 应用商店手机版，支持聚合推荐、分类排行、应用管理、社区交流与消息互动。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
