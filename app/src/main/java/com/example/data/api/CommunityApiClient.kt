@@ -689,7 +689,7 @@ class CommunityApiClient {
 
     suspend fun getUserServer(userId: String): Result<UserServer> = withContext(Dispatchers.IO) {
         try {
-            val url = "${SupabaseConfig.REST_URL}/user_servers?owner_id=eq.${Uri.encode(userId)}&select=id,name,port,quota_bytes,used_bytes,status,created_at&limit=1"
+            val url = "${SupabaseConfig.REST_URL}/user_servers?owner_id=eq.${Uri.encode(userId)}&select=id,owner_id,name,port,used_bytes,quota_bytes,created_at&limit=1"
             val request = newRequestBuilder(url).get().build()
             val response = client.newCall(request).execute()
             val body = response.body?.string() ?: ""
@@ -702,9 +702,43 @@ class CommunityApiClient {
         }
     }
 
+    /** 领取（创建）免费云盘实例：端口随机分配，冲突时重试；每人限 1 个 */
+    suspend fun createUserServer(name: String? = null): Result<UserServer> = withContext(Dispatchers.IO) {
+        try {
+            repeat(3) {
+                val port = kotlin.random.Random.nextInt(20000, 50000)
+                val body = JSONObject().apply {
+                    put("name", name?.trim().takeUnless { it.isNullOrBlank() } ?: "我的免费服务器")
+                    put("port", port)
+                }
+                val request = newRequestBuilder("${SupabaseConfig.REST_URL}/user_servers")
+                    .addHeader("Prefer", "return=representation")
+                    .post(body.toString().toRequestBody(jsonMediaType))
+                    .build()
+                val response = client.newCall(request).execute()
+                val text = response.body?.string() ?: ""
+                if (response.isSuccessful) {
+                    val array = JSONArray(text)
+                    if (array.length() > 0) return@withContext Result.success(parseUserServer(array.getJSONObject(0)))
+                    return@withContext Result.failure(Exception("云盘领取失败，请稍后重试"))
+                }
+                val json = runCatching { JSONObject(text) }.getOrNull()
+                val code = json?.optString("code", "").orEmpty()
+                val message = json?.optString("message", "").orEmpty()
+                if (code == "23505" && message.contains("port")) {
+                    return@repeat
+                }
+                return@withContext Result.failure(Exception(message.ifBlank { "云盘领取失败 HTTP ${response.code}" }))
+            }
+            Result.failure(Exception("端口分配繁忙，请稍后重试"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun getServerFolders(serverId: String): Result<List<ServerFolder>> = withContext(Dispatchers.IO) {
         try {
-            val url = "${SupabaseConfig.REST_URL}/server_folders?server_id=eq.${Uri.encode(serverId)}&select=id,server_id,name,created_at&order=name.asc"
+            val url = "${SupabaseConfig.REST_URL}/server_folders?server_id=eq.${Uri.encode(serverId)}&select=id,server_id,owner_id,name,created_at&order=name.asc"
             val request = newRequestBuilder(url).get().build()
             val response = client.newCall(request).execute()
             val body = response.body?.string() ?: ""
@@ -733,7 +767,7 @@ class CommunityApiClient {
     suspend fun getServerFiles(serverId: String, folderId: String? = null): Result<List<ServerFile>> = withContext(Dispatchers.IO) {
         try {
             val filter = if (folderId != null) "folder_id=eq.${Uri.encode(folderId)}" else "folder_id=is.null"
-            val url = "${SupabaseConfig.REST_URL}/server_files?server_id=eq.${Uri.encode(serverId)}&$filter&select=id,server_id,folder_id,name,size_bytes,storage_path,mime_type,download_count,created_at&order=created_at.desc"
+            val url = "${SupabaseConfig.REST_URL}/server_files?server_id=eq.${Uri.encode(serverId)}&$filter&select=id,server_id,owner_id,folder_id,name,size_bytes,storage_path,created_at&order=created_at.desc&limit=500"
             val request = newRequestBuilder(url).get().build()
             val response = client.newCall(request).execute()
             val body = response.body?.string() ?: ""
@@ -753,11 +787,12 @@ class CommunityApiClient {
         }
     }
 
-    suspend fun createShareLink(fileId: String, password: String?, maxDownloads: Int = 10, expiresIn: String = "1d"): Result<ShareResult> = withContext(Dispatchers.IO) {
+    suspend fun createShareLink(serverId: String, fileId: String, password: String?, maxDownloads: Int = 10, expiresIn: String = "1d"): Result<ShareResult> = withContext(Dispatchers.IO) {
         try {
             val url = "${SupabaseConfig.FUNCTIONS_URL}/server-file"
             val body = JSONObject().apply {
                 put("action", "create_share")
+                put("serverId", serverId)
                 put("fileId", fileId)
                 if (!password.isNullOrBlank()) put("password", password)
                 put("maxDownloads", maxDownloads)

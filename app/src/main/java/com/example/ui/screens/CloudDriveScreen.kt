@@ -136,7 +136,26 @@ fun CloudDriveScreen(
                 item { CircularProgressIndicator() }
             }
             if (cloudError != null) {
-                item { Text("云盘加载失败：$cloudError", color = MaterialTheme.colorScheme.error) }
+                item {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "云盘加载失败：$cloudError",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        // 尚未开通云盘时，提供免费领取入口
+                        if (cloudError!!.contains("云盘实例") || cloudError!!.contains("开通")) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Button(
+                                onClick = { viewModel.createCloudServer() },
+                                modifier = Modifier
+                                    .minimumInteractiveComponentSize()
+                                    .testTag("create_cloud_server_button")
+                            ) {
+                                Text("免费领取云盘")
+                            }
+                        }
+                    }
+                }
             }
             // Storage Quota Card
             if (server != null) item {

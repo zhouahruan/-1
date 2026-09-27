@@ -450,6 +450,27 @@ class MainViewModel(val repository: CommunityRepository = CommunityRepository())
         }
     }
 
+    /** 领取免费云盘（后端每次随机分配端口，每人限 1 个） */
+    fun createCloudServer() {
+        if (!requireLogin("领取云盘")) return
+        if (_cloudLoading.value) return
+        _cloudLoading.value = true
+        _cloudError.value = null
+        viewModelScope.launch {
+            try {
+                val server = repository.createUserServer()
+                _userServer.value = server
+                _folders.value = repository.getServerFolders(server.id)
+                _files.value = repository.getServerFiles(server.id, null)
+                showToast("云盘已开通")
+            } catch (e: Exception) {
+                _cloudError.value = e.message ?: "云盘领取失败"
+            } finally {
+                _cloudLoading.value = false
+            }
+        }
+    }
+
     fun prepareShareFile(file: ServerFile) {
         targetShareFile.value = file
         lastShareResult.value = null
@@ -458,9 +479,14 @@ class MainViewModel(val repository: CommunityRepository = CommunityRepository())
 
     fun confirmCreateShare(password: String?, maxDownloads: Int, expiresIn: String) {
         val file = targetShareFile.value ?: return
+        val serverId = _userServer.value?.id
+        if (serverId.isNullOrBlank()) {
+            showToast("云盘尚未就绪，请先刷新云盘")
+            return
+        }
         viewModelScope.launch {
             try {
-                val res = repository.createShareLink(file.id, password, maxDownloads, expiresIn)
+                val res = repository.createShareLink(serverId, file.id, password, maxDownloads, expiresIn)
                 lastShareResult.value = res
                 showToast("分享链接生成成功！提取码: ${res.code}")
             } catch (e: Exception) {

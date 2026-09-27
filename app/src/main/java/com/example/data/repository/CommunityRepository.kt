@@ -243,9 +243,16 @@ class CommunityRepository(val apiClient: CommunityApiClient = CommunityApiClient
     suspend fun getServerFiles(serverId: String, folderId: String? = null): List<ServerFile> =
         apiClient.getServerFiles(serverId, folderId).getOrThrow()
 
-    suspend fun createShareLink(fileId: String, password: String?, maxDownloads: Int, expiresIn: String): ShareResult {
+    suspend fun createShareLink(serverId: String, fileId: String, password: String?, maxDownloads: Int, expiresIn: String): ShareResult {
         if (apiClient.currentUserId == null) throw IllegalStateException("请先登录再创建分享")
-        return apiClient.createShareLink(fileId, password, maxDownloads, expiresIn).getOrThrow()
+        return apiClient.createShareLink(serverId, fileId, password, maxDownloads, expiresIn).getOrThrow()
+    }
+
+    /** 领取（创建）免费云盘实例 */
+    suspend fun createUserServer(name: String? = null): UserServer {
+        val userId = apiClient.currentUserId ?: throw IllegalStateException("请先登录后再领取云盘")
+        apiClient.createUserServer(name).getOrThrow()
+        return apiClient.getUserServer(userId).getOrThrow()
     }
 
     suspend fun extractShareInfo(code: String): ShareInfo {

@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -74,8 +75,10 @@ fun GroupChatScreen(
                 tonalElevation = 6.dp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .imePadding()
+                    // 先铺底色，否则 insets（导航栏/键盘）区域会露出窗口白色背景
+                    .background(MaterialTheme.colorScheme.surface)
+                    // 键盘弹出时 IME 已包含导航栏区域，取二者最大值避免出现多余的白条
+                    .windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars))
             ) {
                 if (me == null) {
                     Button(
