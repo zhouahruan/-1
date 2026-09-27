@@ -242,7 +242,7 @@ internal class WudianVideoEngine {
         play()
     }
 
-    fun setSpeed(value: Float) {
+    fun changeSpeed(value: Float) {
         speed = value
         applySpeedIfPlaying()
     }
@@ -586,7 +586,7 @@ fun WudianVideoPlayer(
                         onClick = {
                             val index = PLAYBACK_SPEEDS.indexOf(engine.speed)
                             val next = PLAYBACK_SPEEDS[(index + 1).mod(PLAYBACK_SPEEDS.size)]
-                            engine.setSpeed(next)
+                            engine.changeSpeed(next)
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = Color.White),
                         modifier = Modifier.testTag("video_speed")
