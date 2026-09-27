@@ -74,6 +74,20 @@ implementation(libs.androidx.compose.material.icons.extended)
 
 新增界面时请优先复用上述图形元素，保证整套 UI 视觉一致。
 
+## ▶️ 自研视频播放器
+
+播放页不再依赖系统 `VideoView` / `MediaController`，也不引入 ExoPlayer / Media3 等第三方库，
+而是**自研内核 + Compose 自制控制条**：
+
+- **内核**：`ui/components/WudianVideoPlayer.kt` 中的 `WudianVideoEngine`，直接由 `MediaPlayer` 驱动
+  `SurfaceView` 的 Surface（`setSurface` + `prepareAsync`），通过 Compose 状态对外暴露进度、缓冲、
+  错误、画面尺寸，全部调用都在主线程完成，不阻塞 UI。
+- **控制条**：纯 Compose 绘制（Material 3 + 扩展图形库 `Md3Icons`），支持播放/暂停/重播、进度拖动、
+  时间显示、倍速切换（0.5x–2.0x）、静音、缓冲动画、错误提示与重新加载、点击画面切换控制条、
+  播放中 3.5 秒自动隐藏、保持屏幕常亮（`keepScreenOn`）。
+- **画面比例**：`BoxWithConstraints` + `Modifier.aspectRatio` 按视频宽高比自适应缩放，避免拉伸变形。
+- **入口**：`ui/screens/VideoPlayerScreen.kt` 只做转发，方便日后替换内核实现。
+
 ## 🛠 自动化构建 (GitHub Actions)
 本项目**只构建正式包（Release APK）**：
 - 推送（`git push`）到 `main` / `master`，或打 `v*` 标签时，`.github/workflows/build-release.yml` 会自动编译并上传已签名的 Release APK。

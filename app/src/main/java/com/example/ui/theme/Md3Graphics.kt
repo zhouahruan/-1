@@ -99,6 +99,11 @@ object Md3Icons {
         val copy: ImageVector = Icons.Outlined.ContentCopy
         val chevronRight: ImageVector = Icons.Outlined.ChevronRight
         val play: ImageVector = Icons.Filled.PlayArrow
+        val pause: ImageVector = Icons.Filled.Pause
+        val replay: ImageVector = Icons.Filled.Replay
+        val volumeOn: ImageVector = Icons.Outlined.VolumeUp
+        val volumeOff: ImageVector = Icons.Outlined.VolumeOff
+        val speed: ImageVector = Icons.Outlined.Speed
         val logout: ImageVector = Icons.AutoMirrored.Filled.Logout
         val link: ImageVector = Icons.Outlined.Link
     }
