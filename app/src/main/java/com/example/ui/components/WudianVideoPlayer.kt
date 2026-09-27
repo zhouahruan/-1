@@ -2,6 +2,7 @@ package com.example.ui.components
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.media.PlaybackParams
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -139,11 +140,12 @@ internal class WudianVideoEngine {
                 videoWidth = prepared.videoWidth
                 videoHeight = prepared.videoHeight
                 isBuffering = false
-                applySpeedAndVolume()
+                applyVolume()
                 if (autoPlay) {
                     prepared.start()
                     isPlaying = true
                 }
+                applySpeedIfPlaying()
             }
             mp.setOnCompletionListener {
                 isPlaying = false
@@ -164,15 +166,31 @@ internal class WudianVideoEngine {
         }
     }
 
-    private fun applySpeedAndVolume() {
+    /** 音量：静音用 setVolume(0f, 0f)，不依赖任何第三方库。 */
+    private fun applyVolume() {
         val mp = player ?: return
-        try {
-            mp.playbackSpeed = speed
-        } catch (_: Throwable) {
-        }
         val volume = if (muted) 0f else 1f
         try {
             mp.setVolume(volume, volume)
+        } catch (_: Throwable) {
+        }
+    }
+
+    /**
+     * 倍速：MediaPlayer 通过 [PlaybackParams] 控制（API 23+）。
+     * 只在正在播放时下发，避免部分机型在暂停态设置后意外自动续播；
+     * 暂停期间用户改的倍速会在下次 [play] 时生效。
+     */
+    private fun applySpeedIfPlaying() {
+        val mp = player ?: return
+        val playing = try {
+            mp.isPlaying
+        } catch (_: Throwable) {
+            false
+        }
+        if (!playing) return
+        try {
+            mp.playbackParams = PlaybackParams().setSpeed(speed)
         } catch (_: Throwable) {
         }
     }
@@ -192,6 +210,8 @@ internal class WudianVideoEngine {
             isEnded = false
         } catch (_: IllegalStateException) {
         }
+        applyVolume()
+        applySpeedIfPlaying()
     }
 
     fun pause() {
@@ -224,12 +244,12 @@ internal class WudianVideoEngine {
 
     fun setSpeed(value: Float) {
         speed = value
-        applySpeedAndVolume()
+        applySpeedIfPlaying()
     }
 
     fun toggleMute() {
         muted = !muted
-        applySpeedAndVolume()
+        applyVolume()
     }
 
     /** 由 UI 定时调用，同步播放进度。 */
