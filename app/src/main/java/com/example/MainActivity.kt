@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.example.ui.MainViewModel
 import com.example.ui.ScreenDestination
 import com.example.ui.screens.*
+import com.example.ui.theme.Md3Icons
 import com.example.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -83,11 +84,11 @@ fun WudianCommunityApp(viewModel: MainViewModel) {
     // 未登录也可以直接浏览帖子；需要登录的操作会主动弹出登录框
 
     val navTabs = listOf(
-        NavigationTabItem("首页", Icons.Filled.Home, Icons.Outlined.Home, "tab_nav_home"),
-        NavigationTabItem("发现", Icons.Filled.Explore, Icons.Outlined.Explore, "tab_nav_discover"),
-        NavigationTabItem("云盘", Icons.Filled.Cloud, Icons.Outlined.Cloud, "tab_nav_cloud"),
-        NavigationTabItem("搜索", Icons.Filled.Search, Icons.Outlined.Search, "tab_nav_search"),
-        NavigationTabItem("我的", Icons.Filled.Person, Icons.Outlined.Person, "tab_nav_profile")
+        NavigationTabItem("首页", Md3Icons.Nav.homeSelected, Md3Icons.Nav.home, "tab_nav_home"),
+        NavigationTabItem("发现", Md3Icons.Nav.discoverSelected, Md3Icons.Nav.discover, "tab_nav_discover"),
+        NavigationTabItem("云盘", Md3Icons.Nav.cloudDriveSelected, Md3Icons.Nav.cloudDrive, "tab_nav_cloud"),
+        NavigationTabItem("搜索", Md3Icons.Nav.searchSelected, Md3Icons.Nav.search, "tab_nav_search"),
+        NavigationTabItem("我的", Md3Icons.Nav.profileSelected, Md3Icons.Nav.profile, "tab_nav_profile")
     )
 
     Scaffold(

@@ -3,9 +3,6 @@ package com.example.ui.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.ServerFile
 import com.example.data.model.ServerFolder
+import com.example.ui.theme.Md3FileIcon
+import com.example.ui.theme.Md3Icons
 
 @Composable
 fun FolderItem(
@@ -35,8 +34,9 @@ fun FolderItem(
             modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // MD3 扩展图形库：文件夹图形
             Icon(
-                imageVector = Icons.Filled.Folder,
+                imageVector = Md3Icons.File.folder,
                 contentDescription = "文件夹",
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
@@ -50,7 +50,7 @@ fun FolderItem(
                 modifier = Modifier.weight(1f)
             )
             Icon(
-                imageVector = Icons.Outlined.ChevronRight,
+                imageVector = Md3Icons.Action.chevronRight,
                 contentDescription = "进入",
                 tint = MaterialTheme.colorScheme.outline
             )
@@ -78,29 +78,8 @@ fun CloudFileItem(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon
-            val iconVector = when {
-                file.name.endsWith(".pdf", ignoreCase = true) -> Icons.Outlined.PictureAsPdf
-                file.name.endsWith(".zip", ignoreCase = true) || file.name.endsWith(".tar", ignoreCase = true) -> Icons.Outlined.FolderZip
-                file.name.endsWith(".json", ignoreCase = true) || file.name.endsWith(".kt", ignoreCase = true) -> Icons.Outlined.Code
-                file.name.endsWith(".png", ignoreCase = true) || file.name.endsWith(".jpg", ignoreCase = true) -> Icons.Outlined.Image
-                else -> Icons.Outlined.InsertDriveFile
-            }
-
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.size(42.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = iconVector,
-                        contentDescription = "文件类型",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-            }
+            // MD3 扩展图形库：按文件名后缀自动匹配图标 + 语义色底板
+            Md3FileIcon(fileName = file.name)
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -148,7 +127,7 @@ fun CloudFileItem(
                     .testTag("share_file_${file.id}")
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Share,
+                    imageVector = Md3Icons.Action.share,
                     contentDescription = "分享",
                     modifier = Modifier.size(16.dp)
                 )

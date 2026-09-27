@@ -26,6 +26,7 @@ import com.example.ui.ScreenDestination
 import com.example.ui.components.AnnouncementBanner
 import com.example.ui.components.EmptyPlaceholder
 import com.example.ui.components.PostCard
+import com.example.ui.theme.Md3Icons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -175,7 +176,7 @@ fun HomeScreen(
                         description = "该分类下暂无内容，点击右下角按钮发布第一篇帖子吧！",
                         icon = {
                             Icon(
-                                imageVector = Icons.Outlined.Forum,
+                                imageVector = Md3Icons.Status.discussion,
                                 contentDescription = "空",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(32.dp)

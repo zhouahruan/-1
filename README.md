@@ -39,6 +39,41 @@
 
 ---
 
+## 🎨 MD3 UI 扩展图形库
+
+应用统一使用 **Material Design 3** 组件与 **Material Icons Extended 扩展图形包**，入口集中在：
+
+```
+app/src/main/java/com/example/ui/theme/Md3Graphics.kt
+```
+
+依赖已由 Compose BOM 统一管理（`gradle/libs.versions.toml` → `androidx-compose-material-icons-extended`）：
+
+```kotlin
+implementation(libs.androidx.compose.material.icons.extended)
+```
+
+### 扩展图形库能力
+
+| 组成部分 | 说明 |
+| --- | --- |
+| `Md3Icons` | 语义化图标注册表，分 `Nav` / `File` / `Action` / `Status` / `Content` 五组，全应用不再各自 import 图标 |
+| `md3FileBadge(fileName)` | 按文件后缀解析出「图标 + MD3 语义色 + 类型名」，支持 PDF、压缩包、代码、图片、视频、音频、文档、表格、演示文稿、安装包等 |
+| `Md3IconTile` / `Md3FileIcon` | 图标底板与文件类型图标（直接传文件名即可） |
+| `Md3InfoBanner` | 图标 + 文案的 MD3 提示条，替代纯 emoji 提示 |
+| `Md3EmptyState` | 统一空状态（圆形图标底板 + 标题 + 描述 + 可选操作） |
+| `Md3CoverPlaceholder` / `md3BrandGradient` | 品牌渐变封面占位图，缺图时不再留白 |
+| `Md3TagChip` | 可带前置扩展图标的 MD3 标签胶囊 |
+
+### 已接入的位置
+
+- 底部主导航（首页 / 发现 / 云盘 / 搜索 / 我的）——`MainActivity.kt`
+- 云盘文件夹与文件列表（按文件类型自动匹配扩展图标与配色）——`ui/components/CloudFileItem.kt`
+- 发现页轻应用 / 群组提示条与空状态——`ui/screens/DiscoverScreen.kt`
+- 首页帖子空状态——`ui/screens/HomeScreen.kt`
+
+新增界面时请优先复用上述图形元素，保证整套 UI 视觉一致。
+
 ## 🛠 自动化构建 (GitHub Actions)
 本项目**只构建正式包（Release APK）**：
 - 推送（`git push`）到 `main` / `master`，或打 `v*` 标签时，`.github/workflows/build-release.yml` 会自动编译并上传已签名的 Release APK。

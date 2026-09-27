@@ -15,6 +15,9 @@ import com.example.ui.MainViewModel
 import com.example.ui.ScreenDestination
 import com.example.ui.components.GroupItem
 import com.example.ui.components.MiniAppCard
+import com.example.ui.theme.Md3EmptyState
+import com.example.ui.theme.Md3Icons
+import com.example.ui.theme.Md3InfoBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,24 +83,25 @@ fun DiscoverScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     item {
-                        Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                            shape = MaterialTheme.shapes.medium,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "💡 轻应用基于原生 Android WebView 安全沙箱运行，无需安装，点击即刻运行，即开即用。",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(12.dp)
-                            )
-                        }
+                        // MD3 扩展图形库：用扩展图标替代 emoji 提示
+                        Md3InfoBanner(
+                            icon = Md3Icons.Status.tip,
+                            text = "轻应用基于原生 Android WebView 安全沙箱运行，无需安装，点击即刻运行，即开即用。",
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     }
 
                     if (miniAppsError != null) {
                         item { Text("轻应用加载失败：$miniAppsError", color = MaterialTheme.colorScheme.error) }
                     } else if (miniApps.isEmpty()) {
-                        item { Text("暂无已上架的小程序", style = MaterialTheme.typography.bodyMedium) }
+                        item {
+                            Md3EmptyState(
+                                icon = Md3Icons.Status.empty,
+                                title = "暂无已上架的小程序",
+                                description = "轻应用市场上还没有内容，稍后再来看看吧。"
+                            )
+                        }
                     }
 
                     items(miniApps, key = { it.id }) { app ->
@@ -116,16 +120,20 @@ fun DiscoverScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     item {
-                        Surface(
-                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
-                            shape = MaterialTheme.shapes.medium,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "💬 社区即时通讯频道，与各领域的同行和同好畅聊技术动态、架构方案与设计经验。",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(12.dp)
+                        Md3InfoBanner(
+                            icon = Md3Icons.Status.discussion,
+                            text = "社区即时通讯频道，与各领域的同行和同好畅聊技术动态、架构方案与设计经验。",
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+
+                    if (groups.isEmpty()) {
+                        item {
+                            Md3EmptyState(
+                                icon = Md3Icons.Status.group,
+                                title = "暂无社区群组",
+                                description = "群组会陆续开放，敬请期待。"
                             )
                         }
                     }
